@@ -46,36 +46,37 @@ class DB
     {
         $sql = "select * from `$this->table` ";
         $sql = $this->sql_all($sql, $where, $other);
-        return  $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        return $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }
 
     function count($where = '', $other = '')
     {
         $sql = "select count(*) from `$this->table` ";
         $sql = $this->sql_all($sql, $where, $other);
-        return  $this->pdo->query($sql)->fetchColumn();
+        return $this->pdo->query($sql)->fetchColumn();
     }
 
-    private function math($math, $col, $array = '', $other = '')
+    private function math($math, $col, $array, $other)
     {
-        $sql = "select $math(`$col`)  from `$this->table` ";
-        $sql = $this->sql_all($sql, $array, $other);
+        $sql = "select $math(`$col`) from `$this->table` ";
+        $tmp = $this->a2s($array);
+        $sql .= " where " . join(" && ", $tmp);
         return $this->pdo->query($sql)->fetchColumn();
     }
 
     function sum($col = '', $where = '', $other = '')
     {
-        return  $this->math('sum', $col, $where, $other);
+        return $this->math('sum', $col, $where, $other);
     }
 
     function max($col, $where = '', $other = '')
     {
-        return  $this->math('max', $col, $where, $other);
+        return $this->math('max', $where, $other);
     }
 
     function min($col, $where = '', $other = '')
     {
-        return  $this->math('min', $col, $where, $other);
+        return $this->math('min', $where, $other);
     }
 
     function find($id)
@@ -87,8 +88,7 @@ class DB
         } else if (is_numeric($id)) {
             $sql .= " where `id`='$id'";
         }
-        $row = $this->pdo->query($sql)->fetch(PDO::FETCH_ASSOC);
-        return $row;
+        return $this->pdo->query($sql)->fetch(PDO::FETCH_ASSOC);
     }
 
     function del($id)
@@ -106,11 +106,11 @@ class DB
     function save($array)
     {
         if (isset($array['id'])) {
-            $sql = "update `$this->table` set ";
+            $sql = "update `$this->table` set";
             if (!empty($array)) {
                 $tmp = $this->a2s($array);
             }
-            $sql .= join(",", $tmp);
+            $sql .= join("$tmp");
             $sql .= " where `id`='{$array['id']}'";
         } else {
             $sql = "insert into `$this->table` ";
@@ -121,7 +121,7 @@ class DB
         return $this->pdo->exec($sql);
     }
 }
-// 
+//
 function dd($array)
 {
     echo "<pre>";
@@ -135,14 +135,3 @@ function to($url)
 }
 
 $Total = new DB('total');
-
-if (!isset($_SESSION['visited'])) {
-    if ($Total->count(['date' => date('Y-m-d')]) > 0) {
-        $total = $Total->find(['date' => date('Y-m-d')]);
-        $total['total']++;
-        $Total->save($total);
-    } else {
-        $Total->save(['total' => 1, 'date' => date('Y-m-d')]);
-    }
-    $_SESSION['visited'] = 1;
-}
