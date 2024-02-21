@@ -29,6 +29,7 @@ class DB{
                 $sql .= " where " . join(" && ",$tmp);
             } else {
                 $sql .= " $array";
+            }
         }
         $sql .= $other;
         return $sql;
@@ -48,7 +49,7 @@ class DB{
 
     private function math( $math , $col , $array , $other ){
         $sql = "select $math(`$col`) from `$this->table` ";
-        $sql = $this->sql_all($sql,$where,$other);
+        $sql = $this->sql_all($sql,$array,$other);
         return $this->pdo->query($sql)->fetchColumn();
     }
 
